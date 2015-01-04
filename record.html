@@ -1,0 +1,98 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title>Video recorder</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="mediaelement-and-player.min.js"></script>
+    <script type="text/javascript" src="swfobject.js"></script>
+    <link rel="stylesheet" href="mediaelementplayer.min.css" />
+  </head>
+  <body>
+      <script type="text/javascript">
+          var recorder = null;
+          var currentState = null;
+          var currentFileName = null;
+          var mePlayer = null;
+          var connected = false;
+
+          function setRecordingStatus(status) {
+              currentState = status;
+              document.getElementById("status").innerHTML = status;
+          }
+          // From http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
+          function makeId(idlength)
+          {
+              var text = "";
+              var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+              for( var i=0; i < idlength; i++ )
+                  text += possible.charAt(Math.floor(Math.random() * possible.length));
+              return text;
+          }
+
+          function toggleConnect() {
+              connectLink = document.getElementById("connectlink");
+              if (connected) {
+                  recorder.disconnect();
+                  connectLink.text = "Connect";
+                  connected = false;
+              } else {
+                  recorder.connect("rtmp://localhost/myapp");
+                  connectLink.text = "Disconnect";
+                  connected = true;
+              }
+          }
+
+          function toggleRecording() {
+              recLink = document.getElementById("reclink");
+              if (currentState == "recording") {
+                  recorder.stopRecording();
+                  recLink.text = "Start recording";
+                  showPreview("/recorded_videos/" + currentFileNamePrefix + "_video.flv");
+              } else {
+                  currentFileNamePrefix = makeId(10);
+                  recorder.startRecording(currentFileNamePrefix);
+                  recLink.text = "Stop recording";
+                  document.getElementById("preview").style.display = "none";
+              }
+          }
+
+          function showPreview(path) {
+              document.getElementById("preview").style.display = "block";
+              var player = new MediaElementPlayer('#player1', {
+                  type: ['video/flv'],
+                  success: function (mediaElement, domObject) {
+                      var sources = [
+                          { src: path, type: 'video/flv' }
+                      ];
+                      mediaElement.setSrc(sources);
+                      mediaElement.load();
+                      //mediaElement.play();
+                  }
+              });
+          }
+
+          var params = {};
+          params.allowScriptAccess = 'always';
+          swfobject.embedSWF("recorder.swf", "recorder",
+                  "320", "240", "9.0.0", "expressInstall.swf", {}, params, {},
+                  function(e) {
+                      if(e.success) {
+                          recorder = document.getElementById("recorder");
+                          console.log(recorder);
+                      }
+                  });
+      </script>
+      <div><a id="connectlink" href="javascript:toggleConnect()">Connect</a></div>
+      <div id="status">
+      </div>
+      <div id="recorder">
+          <p>Requires Flash to work.</p>
+      </div>
+      <div><a id="reclink" href="javascript:toggleRecording()">Start recording</a></div>
+      <div id="preview" style="display:None"><div>Preview your recorded video here:</div>
+          <video id="player1" width="320" height="240" controls="controls" preload="none">
+          </video>
+      </div>
+  </body>
+</html>
+

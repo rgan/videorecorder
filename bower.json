@@ -1,0 +1,7 @@
+{
+    "name": "videorecorder",
+    "version": "0.0.0",
+    "dependencies": {
+        "mediaelement": "git@github.com:johndyer/mediaelement.git#2.16.3"
+    }
+}
